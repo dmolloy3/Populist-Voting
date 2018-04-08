@@ -18,6 +18,7 @@ library(tidyverse)
 library(haven)
 library(ggrepel)
 library(hrbrthemes)
+library(modelr)
 ```
 
 ```{r parties, include=FALSE}
@@ -179,7 +180,7 @@ ches.extended <- ches.parl %>%
 rm(list=setdiff(ls(), c("manifesto.extended", "manifesto", "ches.combined", "ches.extended")))
 ``` 
 
-```{r CHES-party-positions, fig.cap="Classification of European Parties", fig.width=7, out.width = "100%", fig.asp = 1, cache = TRUE}
+```{r CHES-party-positions, fig.width=7, out.width = "100%", fig.asp = 1, cache = TRUE}
 ggplot(data = ches.extended, aes(x = eco.mean, y = pop.mean, colour = factor(pop.vote))) + 
   geom_text_repel(aes(label = party.short), size = 1.8, box.padding = unit(0.1, 'lines'), point.padding = unit(.1, 'lines')) +
   geom_point(size = .005) + 
@@ -193,3 +194,63 @@ ggplot(data = ches.extended, aes(x = eco.mean, y = pop.mean, colour = factor(pop
   theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
 ```
 
+Manifesto project classifications
+
+```{r cmp-parties, fig.width=7, out.width = "100%", cache = TRUE}
+non.pop <- manifesto.extended %>% 
+  filter(pop.vote == 0) %>%
+  top_n(20, lib.auth) %>%
+  pull(ches)
+
+pop <- manifesto.extended %>% 
+  filter(pop.vote == 1) %>%
+  top_n(-10, lib.auth) %>% 
+  pull(ches)
+
+p <- ggplot(data = manifesto.extended %>% filter(!is.na(pop.vote)), aes(x = eco.lr, y = lib.auth, colour = factor(pop.vote)))
+p + geom_point(size = .1) +
+  geom_text_repel(data = subset(manifesto.extended, ches %in% non.pop | ches %in% pop), aes(label = partyabbrev), size = 2.8, box.padding = unit(0.1, 'lines'), point.padding = unit(.1, 'lines')) +
+  labs(x = "Left <<<< Economic Values Scale >>>> Right", 
+       y = "Cosmopolitan Liberalism <<<< Cultural Values Scale >>>> Populism",
+       colour = "Classification from CHES") + 
+  theme_ipsum() + theme(axis.title.x=element_text(hjust=.5), axis.title.y=element_text(hjust=.5)) + scale_color_brewer(labels =
+                             c("Not Populist", "Populist"), palette = "Set1", direction=-1) +
+  theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+```
+
+Compare the two methods: 
+```{r compare, fig.cap="Significant differences in how the two methods classify parties", fig.width=7, out.width = "100%", cache = TRUE}
+mod.compare <- lm(formula = pop.mean ~ pop.cmp, data = manifesto.extended)
+grid <- manifesto.extended %>%
+  data_grid(pop.cmp) %>%
+  add_predictions(mod.compare)
+
+manifesto.extended <- manifesto.extended %>%
+  add_residuals(mod.compare)
+
+p <- ggplot(manifesto.extended %>% filter(!is.na(pop.mean)), aes(x = pop.cmp, y = pop.mean))
+p + geom_point(aes(colour = factor(pop.vote)), size = .1) + 
+  geom_text_repel(data = subset(manifesto.extended, resid > 28 | resid < -25), aes(label = partyabbrev, colour = factor(pop.vote)), size = 3.5, box.padding = unit(0.1, 'lines'), point.padding = unit(.1, 'lines')) +
+  geom_smooth(method = "lm") + 
+  labs(x = "Manifesto Project - Populism score", 
+       y = "CHES - Populism score",
+       colour = "Classification from CHES") + 
+  theme_ipsum() + theme(axis.title.x=element_text(hjust=.5), axis.title.y=element_text(hjust=.5)) + scale_color_brewer(labels =
+                             c("Not Populist", "Populist"), palette = "Set1", direction=-1) +
+  coord_cartesian(ylim = c(0, 100), xlim = c(35, 77.5)) + 
+  theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+```
+
+Residuals: 
+```{r resid-compare, fig.cap="Above 0 means a party's CHES populism score is higher (more populist) than expected given its score from the Manifesto Project", fig.width=7, out.width = "100%", cache = TRUE}
+ggplot(manifesto.extended %>% filter(!is.na(pop.vote)), aes(pop.cmp, resid, colour = factor(pop.vote))) + 
+  geom_ref_line(h = 0, colour = "gray70") +
+  geom_point(size = .1) +
+  geom_text_repel(data = subset(manifesto.extended, resid > 28 | resid < -25), aes(label = partyabbrev), size = 3.5, box.padding = unit(0.1, 'lines'), point.padding = unit(.1, 'lines')) + 
+  labs(x = "Manifesto Project - Populism score", 
+       y = "Residual error",
+       colour = "Classification from CHES") + 
+  theme_ipsum() + theme(axis.title.x=element_text(hjust=.5), axis.title.y=element_text(hjust=.5)) + scale_color_brewer(labels =
+                             c("Not Populist", "Populist"), palette = "Set1", direction=-1) +
+  theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+```
