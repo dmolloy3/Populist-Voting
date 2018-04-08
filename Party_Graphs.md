@@ -1,10 +1,6 @@
-Party Graphs
+Identifying Populist Parties
 ================
 Declan Molloy
-08/04/2018
-
-Identifying Populist Parties
-============================
 
 There are two main datasets that attempt to classify parties around the world on various metrics, the Chapel Hill Expert Survey (CHES) and the Manifesto Project (previously known as the Comparative Manifesto Project). Neither explicitly code for populism, and so the challenge is to figure out a way to use the variables they do measure to try and come up with a systematic way to classify a party as populist or not.
 
