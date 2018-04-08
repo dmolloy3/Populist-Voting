@@ -8,7 +8,7 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, dev = "png", dpi = 300, 
                       fig.width = 6, fig.asp = 0.618, fig.align = "center", out.width = "70%")
-options(knitr.table.format = "latex")
+options(knitr.table.format = "html")
 ```
 
 ```{r packages, include=FALSE}
@@ -17,6 +17,7 @@ library(haven)
 library(ggrepel)
 library(hrbrthemes)
 library(modelr)
+library(kableExtra)
 ```
 
 #Identifying Populist Parties
@@ -228,7 +229,7 @@ p + geom_point(size = .1) +
 
 To further compare and contrast both datasets and methods, the Manifesto Project populist scores have been rescaled to a 0-100 scale, then each party plotted by their populist scores from the CHES data against the scores from the Manifesto data. Also included is a simple linear regression showing the relationship between the two scores, with some of the parties that have the highest absolute residuals from this linear regression labelled.
 
-```{r compare, fig.cap="Significant differences in how the two methods classify parties", fig.width=7, out.width = "100%", cache = TRUE}
+```{r compare, fig.width=7, out.width = "100%", cache = TRUE}
 mod.compare <- lm(formula = pop.mean ~ pop.cmp, data = manifesto.extended)
 grid <- manifesto.extended %>%
   data_grid(pop.cmp) %>%
@@ -250,9 +251,9 @@ p + geom_point(aes(colour = factor(pop.vote)), size = .1) +
   theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
 ```
 
-Finally, I've plotted the residuals themselves, with the same parties labelled (Figure \@ref(fig:resid-compare)).
+Finally, I've plotted the residuals themselves, with the same parties labelled. Parties above 0 means a party's CHES populism score is higher (more populist) than expected given its score from the Manifesto Project.
 
-```{r resid-compare, fig.cap="Above 0 means a party's CHES populism score is higher (more populist) than expected given its score from the Manifesto Project", fig.width=7, out.width = "100%", cache = TRUE}
+```{r resid-compare, fig.width=7, out.width = "100%", cache = TRUE}
 ggplot(manifesto.extended %>% filter(!is.na(pop.vote)), aes(pop.cmp, resid, colour = factor(pop.vote))) + 
   geom_ref_line(h = 0, colour = "gray70") +
   geom_point(size = .1) +
@@ -263,4 +264,27 @@ ggplot(manifesto.extended %>% filter(!is.na(pop.vote)), aes(pop.cmp, resid, colo
   theme_ipsum() + theme(axis.title.x=element_text(hjust=.5), axis.title.y=element_text(hjust=.5)) + scale_color_brewer(labels =
                              c("Not Populist", "Populist"), palette = "Set1", direction=-1) +
   theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+```
+
+##Which to use?
+
+Looking at these comparisons, it becomes clear that the Manifesto Project populism score is worse at identifying populist radical right parties than the CHES score. The plot of its party classifications shows several widely accepted populist parties, including *Ataka* in Bulgaria, *AfD* in Germany and *Lega Nord* in Italy, with populist scores close to the mean of all parties. This difference is even more stark in when we look at the residuals, where we can see that the parties rated higher by CHES include other populist parties, such as *Jobbik* in Hungary and the *People's Party – Dan Diaconescu* in Romania. Parties that are rated as higher by the Manifesto Project metric include more left-leaning parties, such as the *Left Bloc* in Portugal and the *Green Party* in Sweden. Given this project is focused on radical right populist parties, I use the CHES data to classify populist parties. See below for a full table. 
+
+```{r ches-table, cache=TRUE}
+ches.tbl <- ches.extended %>%
+  mutate(party.name = if_else(!is.na(party_name_english), party_name_english, party.cmp)) %>%
+  filter(pop.vote == 1) %>%
+  arrange(country) %>%
+  mutate(party.name = if_else(party.short == "VMRO-BND", "Bulgarian National Movement", party.name),
+         party.name = if_else(party.short == "NFSB", "National Front for the Salvation of Bulgaria", party.name),
+         party.name = if_else(party.short == "HSP-AS", "Croatian Party of Rights – Dr. Ante Starcevic", party.name),
+         party.name = if_else(party.short == "SP", "United Poland", party.name),
+         party.name = if_else(party.short == "KNP", "Congress of the New Right", party.name)) %>%
+  mutate_if(is.numeric, funs(round(., 2))) %>%
+  select(Country = country, "CHES Wave" = year, "Party Abbreviation" = party.short, "Party Name in English" = party.name, "Election Year" = electionyear, "Vote Share" = vote, "Economic Scale" = eco.mean, "Populism Scale" = pop.mean)
+knitr::kable(
+  ches.tbl, 
+  caption = "Classification of Parties", 
+  booktabs = T
+)
 ```
