@@ -2,7 +2,7 @@
 title: "Party Graphs"
 author: "Declan Molloy"
 date: "08/04/2018"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
