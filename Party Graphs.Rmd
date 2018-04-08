@@ -6,25 +6,190 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, dev = "png", dpi = 300, 
+                      fig.width = 6, fig.asp = 0.618, fig.align = "center", out.width = "70%")
+options(knitr.table.format = "latex")
 ```
 
-## R Markdown
+This chapter outlines different methods of identifying populist parties. 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r packages, include=FALSE}
+library(tidyverse)
+library(haven)
+library(ggrepel)
+library(hrbrthemes)
 ```
 
-## Including Plots
+```{r parties, include=FALSE}
+manifesto <- read_dta("data/MPDataset_MPDS2017a_stata14.dta")
+parlgov.party <- read_csv("data/parlgov_party.csv")
+ches.2014 <- read_dta("data/2014_CHES_dataset_means.dta") %>%
+  mutate(party = party_name, year = 2014)
+ches <- read_dta("data/1999-2014_CHES_dataset_means.dta") 
+missing <- anti_join(ches.2014, ches, by = "party_id") %>% pull(party_id)
+ches.combined <- bind_rows(ches, ches.2014 %>% filter(party_id %in% missing)) %>%
+  rename(country.code = country) %>%
+  mutate(country = case_when(country.code == 1 ~ "Belgium", 
+                             country.code == 2 ~ "Denmark",
+                             country.code == 3 ~ "Germany",
+                             country.code == 4 ~ "Greece",
+                             country.code == 5 ~ "Spain", 
+                             country.code == 6 ~ "France",
+                             country.code == 7 ~ "Ireland",
+                             country.code == 8 ~ "Italy",
+                             country.code == 10 ~ "Netherlands", 
+                             country.code == 11 ~ "UK",
+                             country.code == 12 ~ "Portugal",
+                             country.code == 13 ~ "Austria",
+                             country.code == 14 ~ "Finland", 
+                             country.code == 16 ~ "Sweden",
+                             country.code == 20 ~ "Bulgaria",
+                             country.code == 21 ~ "Czech Republic",
+                             country.code == 22 ~ "Estonia",
+                             country.code == 23 ~ "Hungary",
+                             country.code == 24 ~ "Latvia",
+                             country.code == 25 ~ "Lithuania",
+                             country.code == 26 ~ "Poland",
+                             country.code == 27 ~ "Romania",
+                             country.code == 28 ~ "Slovakia",
+                             country.code == 29 ~ "Slovenia",
+                             country.code == 31 ~ "Croatia",
+                             country.code == 34 ~ "Turkey",
+                             country.code == 35 ~ "Norway",
+                             country.code == 36 ~ "Switzerland",
+                             country.code == 37 ~ "Malta",
+                             country.code == 38 ~ "Luxembourg",
+                             country.code == 40 ~ "Cyprus")) 
+party.link <- read_dta("data/link file for parties in EES.dta", encoding='latin1')
+```
+```{r party cross ref, include=FALSE}
+# Manifesto ---------------------------------------------------------------
+manifesto.unique <- manifesto %>%
+  group_by(party) %>% 
+  slice(which.max(edate)) %>%
+  dplyr::ungroup() %>%
+  mutate(cmp = party) %>%
+  mutate(cmp = as.integer(cmp))
 
-You can also embed plots, for example:
+ches.unique <- ches.combined %>%
+  select(country, eastwest, eumember, year, ches.id = party_id, cmp.id = cmp_id, party, vote, seat, electionyear, family, govt, 
+         galtan, sociallifestyle, nationalism, civlib_laworder, multiculturalism, immigrate_policy, ethnic_minorities, religious_principle, urban_rural, 
+         deregulation, econ_interven, redistribution, spendvtax) %>%
+  #filter(year > 2005) %>%
+  mutate(pop.mean = (rowMeans(select(., galtan, sociallifestyle, nationalism, 
+                                     civlib_laworder, multiculturalism, immigrate_policy, 
+                                     ethnic_minorities, religious_principle, urban_rural), na.rm = TRUE)) * 10,
+         eco.mean = (rowMeans(select(., deregulation, econ_interven, redistribution, spendvtax), na.rm = TRUE)) * 10,
+         pop.vote = if_else(pop.mean >= 75.35, 1, 0)) %>%
+  group_by(ches.id) %>% 
+  slice(which.max(year)) %>%
+  dplyr::ungroup() %>%
+  mutate(cmp.id = case_when(ches.id == 308 ~ 41521,
+                            ches.id == 411 ~ 34020,
+                            ches.id == 518 ~ 33096,
+                            ches.id == 709 ~ 53021,
+                            ches.id == 807 ~ 32221,
+                            ches.id == 819 ~ 32421,
+                            ches.id == 832 ~ 32329,
+                            ches.id == 839 ~ 32320,
+                            ches.id == 844 ~ 32630,
+                            ches.id == 1107 ~ 51110,
+                            ches.id == 2005 ~ 80062,
+                            ches.id == 2012 ~ 80620,
+                            ches.id == 2013 ~ 80061,
+                            ches.id == 2014 ~ 80062,
+                            ches.id == 2015 ~ 80630,
+                            ches.id == 2016 ~ 80330,
+                            ches.id == 2205 ~ 83952,
+                            ches.id == 2410 ~ 87340,
+                            ches.id == 2411 ~ 87620,
+                            ches.id == 2412 ~ 87062,
+                            ches.id == 2413 ~ 87630,
+                            ches.id == 2414 ~ 87901,
+                            ches.id == 2517 ~ 88630,
+                            ches.id == 2611 ~ 92021,
+                            ches.id == 2702 ~ 93031,
+                            ches.id == 2709 ~ 93031, 
+                            
+                            TRUE ~ as.numeric(cmp.id))) %>%
+  select(country, year, electionyear, party, ches = ches.id, cmp = cmp.id, vote, pop.mean, eco.mean, pop.vote) %>%
+  mutate(ches = as.integer(ches), 
+         cmp = as.integer(cmp))
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+parlgov.party.unique <- parlgov.party %>% 
+  select(country_name, party_name_short, party_name_english, party_name, cmp, ches = chess, parlgov = party_id) %>%
+  filter(!is.na(cmp)) %>% 
+  arrange(ches) %>% 
+  distinct(cmp, .keep_all = TRUE)
+
+parlgov.unique.ches <- parlgov.party %>% 
+  select(country_name, party_name_short, party_name_english, party_name, cmp, ches = chess, parlgov = party_id) %>%
+  filter(!is.na(ches)) %>% 
+  arrange(cmp) %>%
+  distinct(ches, .keep_all = TRUE)
+
+ches.parl <- left_join(ches.unique, parlgov.unique.ches, by = "ches") %>%
+  mutate(cmp = if_else(is.na(cmp.x), cmp.y, cmp.x)) %>%
+  select(-c(cmp.x, cmp.y))
+
+ches.filter.na <- ches.parl %>% 
+  filter(!(ches == 308 | ches == 411 | ches == 2005 | ches == 2709 | ches == 3113)) %>%
+  filter(!is.na(cmp))
+
+first.join <- left_join(manifesto.unique, ches.filter.na, by = "cmp")
+
+doubled.up <- first.join %>% count(ches) %>% filter(n>1) %>% filter(!(is.na(ches))) %>% pull(ches)
+
+second.join1 <- first.join %>%
+  filter(!(ches %in% doubled.up))
+
+temp.second.join <- first.join %>%
+  filter(ches %in% doubled.up) %>%
+  group_by(ches) %>%
+  fill(parlgov) %>% fill(parlgov, .direction = "up") %>%
+  ungroup()
+
+third.join <- bind_rows(second.join1, temp.second.join)
+
+party.link.unique <- party.link %>%
+  select(country, prty_code, cmp = eu_manifesto, party_name) %>%
+  filter(!is.na(cmp)) %>%
+  distinct(cmp, .keep_all = TRUE) %>%
+  mutate(cmp = as.integer(cmp))
+
+manifesto.extended <- left_join(third.join, party.link.unique, by = "cmp") %>%
+  mutate(state.market = (per401 + per402 + per407 + per414 + per505) - (per403 + per404 + per405 + per406 + per409 + per412 + per413 + per415 + per416 + per504), 
+         prog.con = (per104 + per109 + per601 + per603 + per605 + per608) - (per105 + per106 + per107 + per501 + per503 + per602 + per604 + per607 + per705), 
+         eco.lr = (per303 + per401 + per402 + per407 + per414 + per505 + per702 + per704) - (per404 + per406 + per413 + per415 + per503 + per504 + per701), 
+         lib.auth = (per104 + per601 + per603 + per605 + per608) - (per105 + per602 + per604 + per607 + per705 + per416)) %>%
+  select(country = countryname, party = partyname, partyabbrev, parfam, edate, edate.ches = electionyear, cmp, ches, parlgov,
+         vote, pop.mean, pop.vote, prog.con, lib.auth, eco.mean, rile, state.market, eco.lr,planeco, markeco, welfare, per104, per601, per603, per605, per608, per105, per602, per604, per607, per705, per416) %>% 
+  mutate(pop.cmp = 50 + (lib.auth/2)) %>%
+  mutate(partyabbrev = if_else(cmp == 87630, "NSL", partyabbrev))
+
+#corrplot(cor(manifesto.extended %>% select(-c(country, party, partyabbrev, edate, edate.ches, cmp, ches, parlgov, vote)), use = "complete.obs"), method = "circle")
+
+# CHES --------------------------------------------------------------------
+
+ches.extended <- ches.parl %>%
+  left_join(manifesto.extended, by = "cmp") %>%
+  select(country = country.x, year, electionyear, party_name_english, party_name, party.short = party.x, party.cmp = party.y, ches = ches.x, cmp, parlgov = parlgov.x, vote = vote.x, pop.mean = pop.mean.x, eco.mean = eco.mean.x, pop.vote = pop.vote.x, lib.auth, eco.lr) %>%
+  filter(year > 2005)
+
+rm(list=setdiff(ls(), c("manifesto.extended", "manifesto", "ches.combined", "ches.extended")))
+``` 
+
+```{r CHES-party-positions, fig.cap="Classification of European Parties", fig.width=7, out.width = "100%", fig.asp = 1, cache = TRUE}
+ggplot(data = ches.extended, aes(x = eco.mean, y = pop.mean, colour = factor(pop.vote))) + 
+  geom_text_repel(aes(label = party.short), size = 1.8, box.padding = unit(0.1, 'lines'), point.padding = unit(.1, 'lines')) +
+  geom_point(size = .005) + 
+  coord_cartesian(ylim = c(0, 100), xlim = c(0, 100)) + 
+  labs(x = "Left <<<< Economic Values Scale >>>> Right", 
+       y = "Cosmopolitan Liberalism <<<< Cultural Values Scale >>>> Populism",
+       colour = NULL, 
+       caption = "Data from CHES 1999-2014") + 
+  theme_ipsum() + theme(axis.title.x=element_text(hjust=.5), axis.title.y=element_text(hjust=.5)) + scale_color_brewer(labels =
+                             c("Not Populist", "Populist"), palette = "Set1", direction=-1) +
+  theme(legend.position = "top") + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
