@@ -59,29 +59,50 @@ Given the surprising finding that populist radical right parties are more likely
 Cultural Backlash
 -----------------
 
-Perhaps the most dominant thesis for what drives populist radical right voting is that of cultural grievances, which holds that populist voting is mainly driven by a cultural backlash against the rise of progressive values in society.
+Perhaps the most dominant thesis for what drives populist radical right voting is that of cultural grievances, which holds that populist voting is mainly driven by a cultural backlash against the rise of progressive values in society. This thesis was first proposed by Inglehart, who advanced the notion of ‘the silent revolution,’ whereby postmaterial values such as inclusion, environmental protection and equality have all gained greater prominence in recent times. He argues that this prompted a backlash among older generations, who see the erosion of traditional values as detrimental to society and who therefore vote for populist candidates that promise to a return to a society that respects these traditional values. The problem for this theory is that younger people, as we saw earlier, are more likely to vote for populist radical right parties than older people. Given such a spectacularly erroneous prediction, it is tempting to entirely dismiss this theory, but this would be a mistake. Instead, ESS data will again be used in an attempt to figure out exactly where the cultural backlash thesis has gone astray.
+
+The most canonical examples of post-material values were plotted for all respondents as well as for only those who voted for populist parties. Four variables were chosen to reflect how the respondents felt about the environment, LGBTQI rights, and gender equality. Each question was rescaled onto a 0-100 scale, with 100 representing the most liberal option in every case. The results are plotted below.
 
 <img src="Party_Graphs_files/figure-markdown_github/prog-graph-1.png" width="100%" style="display: block; margin: auto;" />
+
+The results are largely consistent with the part of the cultural backlash thesis stipulating that each successive generation was likely to be more progressive with regard to post-material values, with the notable exception of the environmental variable. For each of the other three variables, there is a clear linear trend of each younger cohort being successively more likely to hold a liberal view than those older. While the results are somewhat mixed, it can be concluded that the cultural backlash thesis is broadly correct so far; younger voters are more liberal when it comes to post-material values, and populist voters are less liberal than the overall population.
+
+A variant on these post-material values of openness and tolerance is the idea that those voting for populist parties will have a certain psychological profile, specifically of being less open and more deferential to authority. To use the ESS to investigate these whether an authoritarian personality can help explain why young people are voting for populist radical right parties, we build an authoritarian index for each voter using variables that aim to measure how deferential someone is to authority, specifically the importance of living in safe surrounds, following rules, and behaving properly.
 
 <img src="Party_Graphs_files/figure-markdown_github/auth-graph-1.png" alt="The age curve of authoritarian values is similar to the post-material values curves" width="70%" />
 <p class="caption">
 The age curve of authoritarian values is similar to the post-material values curves
 </p>
 
+The curves for all voters and for populist voters both bear a striking resemblance to the series of curves we saw earlier when plotting post-material values. That is, the trend is linear for both groups, younger voters have less authoritarian personalities, and populist voters have more authoritarian personalities. So far so good for the post-material values thesis; as younger generations are more materially secure, they can afford to be more open and are less respectful of traditional norms than older generations.
+
+Next, attitudes on immigration are looked at, perhaps the most widely linked variable to populist voting. The ESS asks respondents for their views on the effect immigration has on the economy, culture and overall country, with these variables combined and plotted below. Again, the result concurs with the existing literature. Younger people view immigration more positively than older people, with an approximately linear trend. Populist voters have a much dimmer view of immigrants than the overall public, with young populist voters holding a similar view of immigration to the oldest cohorts of the general public. Finally, the linear trend also holds among the subset of populist voters. Populist voters born earlier still view immigrants less favourably than those born more recently.
+
 <img src="Party_Graphs_files/figure-markdown_github/imm-graph-1.png" alt="As expected, younger voters have a more positive view of immigrants" width="70%" />
 <p class="caption">
 As expected, younger voters have a more positive view of immigrants
 </p>
+
+At this point, a rather confusing picture is presented. There is clearly something to the idea that younger generations are more liberal when it comes to post-material values. In most of the metrics that have been looked at so far, there is a clear linear trend whereby the youngest cohort has the most liberal view. Furthermore, populist voters are also on the whole less liberal than the overall population. It thus seems logical to draw the conclusion that therefore populist voting is driven in large part by older generations, who are the least liberal. However, this conclusion is wrong; young people are more likely to vote for populist parties than older people. What have we been missed? This is a complex question that I dive into more depth in my full thesis, but essentially this is a correlation vs causation problem. While populist voters are less liberal than the overall population for every year of birth, this is not what is driving the populist vote.
+
+Economic insecurity
+-------------------
+
+The second major thesis aiming to explain the rise in populist voting is that of economic insecurity. This theory argues that it is the losers of globalisation who are increasingly drawn to populist causes. Again we use ESS data, this time to plot satisfaction in the economy, shown below. What results is a U-shaped curve, with older and younger people most satisfied in the economy, and those born in the late 1950s the least satisfied. Again, this could be a product of the lack of longitudinal data, with someone born in 1960 being 42 years old in the first ESS wave and 54 years old in the most recent, a fairly small and specific portion of their life. Perhaps there is something about these ages that leads to dissatisfaction in the economy. In any case, there is no evidence that young people are especially dissatisfied with the economy, as would be the case if it were driving populist voting. If anything, the opposite is found to be true. Interestingly, the youngest cohort of populist voters is only marginally more pessimistic about the economy than the overall view of the youngest cohort, so much so that the populist margin of error (represented by the error bars) ever so slightly crosses the overall voter curve. Not only are young people not more pessimistic than the other cohorts about the economy, but young populist voters aren't even that much more pessimistic than young people overall. As such, we can dismiss another theory: it is not dissatisfaction with the economy that is spurring younger voters to vote for populist radical right parties.
 
 <img src="Party_Graphs_files/figure-markdown_github/eco-graph-1.png" alt="Satisfaction in the Economy" width="70%" />
 <p class="caption">
 Satisfaction in the Economy
 </p>
 
-<img src="Party_Graphs_files/figure-markdown_github/nat-graph-1.png" alt="Older generations trust national political systems more than younger generations" width="100%" />
-<p class="caption">
-Older generations trust national political systems more than younger generations
-</p>
+To recap, both of the main theories that purport to explain why people are likely to vote for populist parties fail to predict the voting behaviour of the youngest cohort. They all predict to various extents that older voters are more likely to be populist radical right voters. Given that this has already been found to be not the case, it makes sense that these theories would also be found deficient. Clearly, something is missing. Despite their collective failure to predict the populist vote age curve, most of these theories *do* tend to accurately portray the views of younger cohorts, describing them as less authoritarian, more liberal on social values, and less likely to be victims of globalisation, all of which is true. This further illustrates why it is so perplexing that younger cohorts are more likely to vote for populist parties. However, perhaps our focus has been misdirected: so far all of the theories looked at have advocated that some particular variable is what drives populist voting, and comparing the age distribution of that variable to the age distribution of the populist vote we have come up short each time. Perhaps age itself is the variable we are looking for.
+
+Age as a variable
+-----------------
+
+Finally, we look at age itself as a variable
+
+<img src="Party_Graphs_files/figure-markdown_github/nat-graph-1.png" width="100%" style="display: block; margin: auto;" />
 
 <img src="Party_Graphs_files/figure-markdown_github/global-graph-1.png" alt="Younger generations trust global governance institutions more than national ones" width="100%" />
 <p class="caption">
