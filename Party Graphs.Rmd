@@ -617,6 +617,411 @@ cowplot::plot_grid(p1, p2, nrow = 2, rel_heights = c(1, 2))
 
 While there are significant differences in trends between the countries, it is also clear that young people voting for populist parties is not isolated to one country. France, Norway, Belgium, Netherlands, Bulgaria, Finland, Germany and Turkey all show a clear trend that younger people are more likely to vote for populist parties. Clearly, the data is not uniform, and there are countries that buck the overall trend. As such, we can conclude that the data is somewhat country specific. Nevertheless, as there is nothing particularly obvious connecting the countries to do share the trend, and because respondents have been weighted to take into account country population, we can conclude that the overall data is valid; this result is not driven by a sole outlying country that has a huge young populist vote. The trend shows up in multiple unrelated countries as well as the overall plot. As such, young voters across Europe *are* more likely to vote for populist parties than older voters. 
 
+#What drives populist voting?
+
+Given the surprising finding that populist radical right parties are more likely to be supported by young people, we can now turn to the next question: what is driving this support? Broadly, there are two main schools of thought to answer this question, one emphasising economic insecurity and the other pointing to cultural grievances. Unfortunately, neither theory predicts that young cohorts will vote for populist radical right parties at the highest rate. The cultural grievance hypothesis explicitly predicts that young voters ought to be the least likely to vote for radical right populist parties. It is harder to judge the economic insecurity thesis because it does not specify which cohorts are the most economically insecure, but in its most usual enunciation it argues that it is the 'losers of globalisation' who are susceptible to populist voting; older workers that have been laid-off as their jobs are shipped offshore. As such, this theory also fails to predict that young people are more likely to be populist voters. Nevertheless, both theories are examined in depth in order to find out exactly where they went wrong. I conclude that failing to explicitly treat age as a variable is the downfall of these theories. Finally, I examine what might cause age itself to cause young people to vote for populist radical right parties. Study after study shows that voting is a habit, and the data supports this with young voters having a much lower turnout than any other age group. I therefore conclude that only the most motivated and therefore most extreme young voters actually bother to vote, which naturally results in radical parties of both sides receiving a higher share of the vote than they do with other age groups. 
+
+```{r ess-function}
+range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
+essvar.plot <- function(variable){
+  variable <- enquo(variable)
+  ess.var <- ess.select %>%
+    filter(!is.na(pop.vote)) %>%
+    filter(!is.na((!!variable))) %>%
+    mutate(scaled.var = range01(!!variable)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(age) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100)
+  
+    ess.var.pop <- ess.select %>%
+    filter(!is.na((!!variable))) %>%
+    filter(pop.vote == 1) %>%
+    mutate(scaled.var = range01(!!variable)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(age) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100)
+  
+  p <- ggplot(data = ess.var, aes(x = age, y = weighted.var, weight = weights))
+  p + geom_smooth(se = TRUE, span = .6, colour = "Blue", fill = "Blue") + geom_smooth(data = ess.var.pop, se = TRUE, span = .6, colour = "Red", fill = "Red") +
+    labs(title = variable) + 
+    guides(colour = FALSE) 
+}
+essvar.group <- function(variable){
+  variable <- enquo(variable)
+  ess.var <- ess.select %>%
+    filter(!is.na(pop.vote)) %>%
+    filter(!is.na((!!variable))) %>%
+    mutate(scaled.var = range01(!!variable)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(age) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100) %>%
+    mutate(pop = 0)
+
+    ess.var.pop <- ess.select %>%
+    filter(!is.na((!!variable))) %>%
+    filter(pop.vote == 1) %>%
+    mutate(scaled.var = range01(!!variable)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(age) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100) %>%
+      mutate(pop = 1)
+    
+ ess.comb <- rbind(ess.var, ess.var.pop)
+  return(ess.comb)
+}
+essvar.birth <- function(variable){
+  variable <- enquo(variable)
+  ess.var <- ess.select %>%
+    filter(!is.na(pop.vote)) %>%
+    filter(!is.na((!!variable))) %>%
+    mutate(scaled.var = range01(!!variable)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(birth.year) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100) %>%
+    mutate(pop = 0)
+
+    ess.var.pop <- ess.select %>%
+    filter(!is.na((!!variable))) %>%
+    filter(pop.vote == 1) %>%
+    mutate(scaled.var = range01(!!variable)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(birth.year) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100) %>%
+      mutate(pop = 1)
+    
+ ess.comb <- rbind(ess.var, ess.var.pop)
+  return(ess.comb)
+}
+
+essvar.birth.reverse <- function(variable){
+  variable <- enquo(variable)
+  ess.var <- ess.select %>%
+    filter(!is.na(pop.vote)) %>%
+    filter(!is.na((!!variable))) %>%
+    mutate(scaled.var = range01(!!variable), 
+           scaled.var = 1 - scaled.var) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(birth.year) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100) %>%
+    mutate(pop = 0)
+
+    ess.var.pop <- ess.select %>%
+    filter(!is.na((!!variable))) %>%
+    filter(pop.vote == 1) %>%
+    mutate(scaled.var = range01(!!variable), 
+           scaled.var = 1 - scaled.var) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(birth.year) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean((!!variable)), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100) %>%
+      mutate(pop = 1)
+    
+ ess.comb <- rbind(ess.var, ess.var.pop)
+  return(ess.comb)
+}
+
+
+ess.plot <- function(d1, var){
+ggplot(data = d1, aes(x = var, y = weighted.var, weight = weights, colour = factor(pop), fill = factor(pop))) +
+  geom_smooth(se = TRUE, span = .7) + 
+  theme_ipsum() + 
+  scale_color_brewer(labels = c("All voters", "Voted for a populist party"), palette = "Set1", direction=-1) +
+  scale_fill_brewer(labels = c("All voters", "Voted for a populist party"), palette = "Set1", direction=-1) + 
+  labs(colour = NULL, fill = NULL) + 
+  coord_cartesian(ylim = c(0, 100))
+}
+```
+
+```{r more vars, cache=TRUE}
+ess.select <- ess.select %>% mutate(imm = (range01(imbgeco, na.rm = T) + range01(imueclt, na.rm = T) + range01(imwbcnt, na.rm = T))/3,
+                                    auth = (range01(impsafe, na.rm = T) + range01(ipfrule, na.rm = T) + range01(ipbhprp, na.rm = T) + range01(ipstrgv, na.rm = T) + range01(imptrad, na.rm = T))/5,
+                                    global = (range01(trstun, na.rm = T) + range01(trstep, na.rm = T))/2, 
+                                    national.gov = (range01(trstplt, na.rm = T) + range01(stfgov, na.rm = T) + range01(stfdem, na.rm = T))/3)
+
+```
+
+## Cultural Backlash
+
+Perhaps the most dominant thesis for what drives populist radical right voting is that of cultural grievances, which holds that populist voting is mainly driven by a cultural backlash against the rise of progressive values in society. 
+
+```{r prog-graph, out.width = "100%", fig.width = 9, fig.asp = .4, cache = TRUE}
+d2 <- essvar.birth.reverse(impenv)
+d3 <- essvar.birth.reverse(freehms)
+d4 <- essvar.birth(wmcpwrk)
+d5 <- essvar.birth(mnrgtjb)
+
+p102 <- ess.plot(d2, d2$birth.year) + 
+  labs(x = "Year of birth", 
+       subtitle = "Important to care \nfor the environment", 
+       y = NULL) +
+  theme(legend.position = "bottom") +
+  coord_cartesian(ylim = c(15, 85))+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+
+p103 <- ess.plot(d3, d3$birth.year) + 
+  labs(x = "Year of birth", 
+       subtitle = "LGBTQI should be free \nto live as they wish", 
+       y = NULL) + 
+  theme(legend.position = "bottom") +
+  coord_cartesian(ylim = c(15, 85))+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+
+p104 <- ess.plot(d4, d4$birth.year) + 
+  labs(x = "Year of birth", 
+       subtitle = "Women: \nwork vs family", 
+       y = NULL) + 
+  theme(legend.position = "bottom") +
+  coord_cartesian(ylim = c(15, 85))+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+
+p105 <- ess.plot(d5, d5$birth.year) + 
+  labs(x = "Year of birth", 
+       subtitle = "Prioritise men for \njobs when they are scarce", 
+       y = NULL) + 
+  theme(legend.position = "bottom") +
+  coord_cartesian(ylim = c(15, 85)) + theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+
+
+
+cowplot::plot_grid(p102, p103, p104, p105, ncol = 4)
+```
+
+```{r auth-graph, fig.cap="The age curve of authoritarian values is similar to the post-material values curves"}
+d2 <- essvar.birth(auth)
+
+p107 <- ess.plot(d2, d2$birth.year) + 
+  labs(subtitle = "Authoritarian Index", 
+       x = "Year of birth", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(10, 40))
+p107
+```
+
+
+```{r imm-graph, fig.cap="As expected, younger voters have a more positive view of immigrants"}
+d2 <- essvar.birth(imm)
+
+p106 <- ess.plot(d2, d2$birth.year) + 
+  labs(y = NULL, 
+       x = "Year of birth", 
+       subtitle = "Immigration: net \npositive or negative") + 
+  coord_cartesian(ylim = c(30, 60)) 
+  
+p106
+```
+
+```{r eco-graph, fig.cap="Satisfaction in the Economy"}
+d2 <- essvar.birth(stfeco)
+d3 <- essvar.group(stfeco)
+
+p110 <- ess.plot(d2, d2$birth.year) + 
+  labs(subtitle = "Satisfaction in the Economy", 
+       x = "Year of birth", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(30, 55))
+  
+p110
+```
+
+
+```{r nat-graph, fig.cap="Older generations trust national political systems more than younger generations", out.width="100%", fig.width=9, fig.asp=.4, cache=TRUE}
+
+d2 <- essvar.group(national.gov)
+d3 <- essvar.group(trstplt)
+d4 <- essvar.group(stfgov)
+d5 <- essvar.group(stfdem)
+
+p108 <- ess.plot(d2, d2$age) + 
+  labs(subtitle = "Trust in national governance", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(25, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+
+p112 <- ess.plot(d3, d3$age) + 
+  labs(subtitle = "Trust in politicians", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(25, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+p113 <- ess.plot(d4, d4$age) + 
+  labs(subtitle = "Satisfaction with government", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(25, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+p114 <- ess.plot(d5, d5$age) + 
+  labs(subtitle = "Satisfaction with democracy", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(25, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+  
+cowplot::plot_grid(p112, p113, p114, p108, ncol = 4)
+```
+
+```{r global-graph, fig.cap="Younger generations trust global governance institutions more than national ones", out.width="100%", fig.width=9, fig.asp=.4, cache=TRUE}
+d2 <- essvar.group(global)
+d3 <- essvar.group(trstun)
+d4 <- essvar.group(trstep)
+
+
+p109 <- ess.plot(d2, d2$age) + 
+  labs(subtitle = "Trust in global governance", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(30, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+p108 <- p108 + coord_cartesian(ylim = c(30,60))
+
+p116 <- ess.plot(d3, d3$age) + 
+  labs(subtitle = "Trust in UN", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(30, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+p117 <- ess.plot(d4, d4$age) + 
+  labs(subtitle = "Trust in European Parliament", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(30, 60)) + 
+  theme(legend.position = "bottom")+ theme(plot.margin = unit(c(.35, .35, .35, .35), "cm"))
+
+cowplot::plot_grid(p116, p117, p109, p108, ncol = 4)
+```
+
+```{r cohort-party, fig.cap = "Young voters are not more sceptical of political parties"}
+d6 <- essvar.group(trstprt)
+p115 <- ess.plot(d6, d6$age) + 
+  labs(subtitle = "Trust in political parties", 
+       x = "Age", 
+       y = NULL) + 
+  coord_cartesian(ylim = c(25, 60))
+
+p115 + coord_cartesian(ylim = c(25,45))
+```
+
+```{r turnout, fig.cap="Turnout is drastically lower among young people", fig.width= 10, figure.asp = .8, out.width="100%"}
+  ess.var2 <- ess.select %>%
+    mutate(vote = ifelse(vote == 3, NA, vote)) %>%
+    filter(country %in% some.pop) %>%
+    filter(!is.na(vote)) %>%
+    mutate(scaled.var = 1 - range01(vote)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(ess.round, birth.year) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean(vote), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100)
+
+  ess.var3 <- ess.select %>%
+    mutate(vote = ifelse(vote == 3, NA, vote)) %>%
+    filter(country %in% some.pop) %>%
+    filter(!is.na(vote)) %>%
+    mutate(scaled.var = 1 - range01(vote)) %>%
+    mutate(weighted.var = scaled.var * comb.weight) %>%
+    mutate(study.year = age + birth.year) %>%
+    mutate(age = replace(age, age > 85, 85),
+           age = replace(age, age < 18, 18)) %>%
+    mutate(birth.year = study.year - age) %>%
+    group_by(ess.round, age) %>%
+    summarise(count = n(), 
+              weights = sum(comb.weight),
+              pop.vote = mean(vote), 
+              weighted.var = sum(weighted.var)/weights, 
+              weighted.var = weighted.var * 100)
+  
+p123 <- ggplot(data = ess.var2, aes(x = birth.year, y = weighted.var/100, weight = weights, colour = factor(ess.round))) +
+    geom_smooth(se = FALSE, span = .7) + 
+    theme_ipsum() + 
+    labs(subtitle = "Turnout by year of birth", 
+       x = "Year of birth",
+       colour = "ESS Round",
+       y = NULL) + 
+    coord_cartesian(ylim = c(0, 1)) +
+  theme(legend.position = "bottom") + 
+  scale_x_reverse()+ 
+  scale_color_ipsum(labels = c("1 - 2002", "2 - 2004", "3 - 2006", "4 - 2008", "5 - 2010", "6 - 2012", "7 - 2014")) + 
+  scale_y_percent()
+
+p132 <- ggplot(data = ess.var3, aes(x = age, y = weighted.var/100, weight = weights, colour = factor(ess.round))) +
+    geom_smooth(se = FALSE, span = .7) + 
+    theme_ipsum() + 
+    labs(subtitle = "Turnout by age", 
+       x = "Age",
+       colour = "ESS Round",
+       y = NULL) + 
+    coord_cartesian(ylim = c(0, 1)) +
+  theme(legend.position = "bottom") + 
+  scale_color_ipsum(labels = c("1 - 2002", "2 - 2004", "3 - 2006", "4 - 2008", "5 - 2010", "6 - 2012", "7 - 2014")) + 
+  scale_y_percent()
+cowplot::plot_grid(p123, p132)
+```
 
 #Appendix
 

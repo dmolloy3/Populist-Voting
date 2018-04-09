@@ -51,6 +51,53 @@ Given the counter-intuitive result, it is worth taking a more granular look at t
 
 While there are significant differences in trends between the countries, it is also clear that young people voting for populist parties is not isolated to one country. France, Norway, Belgium, Netherlands, Bulgaria, Finland, Germany and Turkey all show a clear trend that younger people are more likely to vote for populist parties. Clearly, the data is not uniform, and there are countries that buck the overall trend. As such, we can conclude that the data is somewhat country specific. Nevertheless, as there is nothing particularly obvious connecting the countries to do share the trend, and because respondents have been weighted to take into account country population, we can conclude that the overall data is valid; this result is not driven by a sole outlying country that has a huge young populist vote. The trend shows up in multiple unrelated countries as well as the overall plot. As such, young voters across Europe *are* more likely to vote for populist parties than older voters.
 
+What drives populist voting?
+============================
+
+Given the surprising finding that populist radical right parties are more likely to be supported by young people, we can now turn to the next question: what is driving this support? Broadly, there are two main schools of thought to answer this question, one emphasising economic insecurity and the other pointing to cultural grievances. Unfortunately, neither theory predicts that young cohorts will vote for populist radical right parties at the highest rate. The cultural grievance hypothesis explicitly predicts that young voters ought to be the least likely to vote for radical right populist parties. It is harder to judge the economic insecurity thesis because it does not specify which cohorts are the most economically insecure, but in its most usual enunciation it argues that it is the 'losers of globalisation' who are susceptible to populist voting; older workers that have been laid-off as their jobs are shipped offshore. As such, this theory also fails to predict that young people are more likely to be populist voters. Nevertheless, both theories are examined in depth in order to find out exactly where they went wrong. I conclude that failing to explicitly treat age as a variable is the downfall of these theories. Finally, I examine what might cause age itself to cause young people to vote for populist radical right parties. Study after study shows that voting is a habit, and the data supports this with young voters having a much lower turnout than any other age group. I therefore conclude that only the most motivated and therefore most extreme young voters actually bother to vote, which naturally results in radical parties of both sides receiving a higher share of the vote than they do with other age groups.
+
+Cultural Backlash
+-----------------
+
+Perhaps the most dominant thesis for what drives populist radical right voting is that of cultural grievances, which holds that populist voting is mainly driven by a cultural backlash against the rise of progressive values in society.
+
+<img src="Party_Graphs_files/figure-markdown_github/prog-graph-1.png" width="100%" style="display: block; margin: auto;" />
+
+<img src="Party_Graphs_files/figure-markdown_github/auth-graph-1.png" alt="The age curve of authoritarian values is similar to the post-material values curves" width="70%" />
+<p class="caption">
+The age curve of authoritarian values is similar to the post-material values curves
+</p>
+
+<img src="Party_Graphs_files/figure-markdown_github/imm-graph-1.png" alt="As expected, younger voters have a more positive view of immigrants" width="70%" />
+<p class="caption">
+As expected, younger voters have a more positive view of immigrants
+</p>
+
+<img src="Party_Graphs_files/figure-markdown_github/eco-graph-1.png" alt="Satisfaction in the Economy" width="70%" />
+<p class="caption">
+Satisfaction in the Economy
+</p>
+
+<img src="Party_Graphs_files/figure-markdown_github/nat-graph-1.png" alt="Older generations trust national political systems more than younger generations" width="100%" />
+<p class="caption">
+Older generations trust national political systems more than younger generations
+</p>
+
+<img src="Party_Graphs_files/figure-markdown_github/global-graph-1.png" alt="Younger generations trust global governance institutions more than national ones" width="100%" />
+<p class="caption">
+Younger generations trust global governance institutions more than national ones
+</p>
+
+<img src="Party_Graphs_files/figure-markdown_github/cohort-party-1.png" alt="Young voters are not more sceptical of political parties" width="70%" />
+<p class="caption">
+Young voters are not more sceptical of political parties
+</p>
+
+<img src="Party_Graphs_files/figure-markdown_github/turnout-1.png" alt="Turnout is drastically lower among young people" width="100%" />
+<p class="caption">
+Turnout is drastically lower among young people
+</p>
+
 Appendix
 ========
 
